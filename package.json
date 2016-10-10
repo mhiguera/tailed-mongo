@@ -1,0 +1,29 @@
+{
+  "name": "tailed-mongo",
+  "version": "0.1.0",
+  "description": "Tailed cursor for MongoDB capped collections",
+  "author": "Manuel de la Higuera <mhiguera@gmail.com>",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mhiguera/tailed-mongo.git"
+  },
+  "keywords": [
+    "sync",
+    "mongodb",
+    "capped",
+    "tail",
+    "cursor",
+    "publish",
+    "subscription"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mhiguera/tailed-mongo/issues"
+  },
+  "homepage": "https://github.com/mhiguera/tailed-mongo",
+  "dependencies": {
+    "async": "^2.0.1",
+    "mongodb": "^2.2.10"
+  }
+}
