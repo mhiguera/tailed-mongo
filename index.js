@@ -51,9 +51,9 @@ module.exports = function conveyor(options, callback) {
       emitter.emit('error', err);
       return callback && callback(err);
     }
-    if (previous && previous.message) emitter.emit('message', previous.message);
-    let options = { tailable: true, awaitdata: true, numberOfRetries: -1 }
-    cursor = collection.find({ _id: { $gt: startPoint } }, options);
+    if (previous && previous.message && !options.omitFirst) emitter.emit('message', previous.message);
+    let opts = { tailable: true, awaitdata: true, numberOfRetries: -1 }
+    cursor = collection.find({ _id: { $gt: startPoint } }, opts);
     cursor.each(function(err, doc) {
       if (err) return emitter.emit('error', err);
       if (!doc || !doc.message) return;
