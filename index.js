@@ -54,7 +54,6 @@ module.exports = function conveyor(options, callback) {
     }
     if (previous && previous.message) emitter.emit('message', previous.message);
     let opts = { tailable: true, awaitdata: true, numberOfRetries: -1 }
-    console.log(startPoint);
     cursor = collection.find({ _id: { $gt: startPoint } }, opts);
     cursor.each(function(err, doc) {
       if (err) return emitter.emit('error', err);
