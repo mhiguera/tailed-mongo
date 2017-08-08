@@ -12,8 +12,8 @@ module.exports = function conveyor(options, callback) {
   let idHandler      = options.idHandler  || function() { return MongoDB.ObjectID() };
   let collectionOptions = {
     capped: true,
-    size:   Math.pow(2,24) || options.size,
-    max:    Math.pow(2,4)  || options.max
+    size:   options.size || Math.pow(2,24),
+    max:    options.max  || Math.pow(2,4)
   }
   
   let emitter = new EventEmitter();
@@ -45,7 +45,7 @@ module.exports = function conveyor(options, callback) {
       collection = coll;
       callback(null, coll);
     })
-  }
+  } 
   
   async.waterfall([createCollection, findStartPoint], function(err, previous) {
     if (err) {
@@ -55,9 +55,11 @@ module.exports = function conveyor(options, callback) {
     if (previous && previous.message) emitter.emit('message', previous.message);
     let opts = { tailable: true, awaitdata: true, numberOfRetries: -1 }
     collection.find({ _id: { $gt: startPoint } }, opts, function(err, cursor) {
-      if (err) return emitter.emit('error', err);
-      cursor.forEach(function(doc) {
-        if (!doc || !doc.message) return;
+      cursor.forEach(function(doc, callback) {
+        if (err) {
+          if (callback) callback(err);
+          emitter.emit('error', err);
+        } else if (!doc || !doc.message) return;
         emitter.emit((doc.by == id)? 'acknowledge' : 'message', doc.message);
       })
       closed = false;
@@ -88,3 +90,4 @@ module.exports = function conveyor(options, callback) {
   }
   return exports;
 }
+
