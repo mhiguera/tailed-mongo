@@ -9,7 +9,7 @@ module.exports = function conveyor(options, callback) {
   let collection, startPoint, cursor;
   let database       = options.database;
   let collectionName = options.collection || 'conveyor';
-  let idHandler      = options.idHandler  || function() { return MongoDB.ObjectID() };
+  let idHandler      = options.idHandler;
   let collectionOptions = {
     capped: true,
     size:   options.size || Math.pow(2,24),
@@ -21,9 +21,11 @@ module.exports = function conveyor(options, callback) {
   let id = options.id || crypto.randomBytes(8).toString('hex');
   
   let setStartPoint = function(callback) {
-    startPoint = idHandler();
-    collection.insert({ _id: startPoint, by: id }, function(err, doc) {
-      if (err || !doc.result.ok) return callback(err || 'error')
+    var d = { by: id };
+    if (idHandler) d._id = idHandler();
+    collection.insert(d, function(err, doc) {
+      if (err || !doc.result.ok) return callback(err || 'error');
+      startPoint = doc._id;
       return callback(null, null);
     })
   }
@@ -52,7 +54,7 @@ module.exports = function conveyor(options, callback) {
       emitter.emit('error', err);
       return callback && callback(err);
     }
-    if (previous && previous.message) emitter.emit('message', previous.message);
+    if (previous && previous.message && !options.omitPrevious) emitter.emit('message', previous.message);
     let opts = { tailable: true, awaitdata: true, numberOfRetries: -1 }
     collection.find({ _id: { $gt: startPoint } }, opts, function(err, cursor) {
       cursor.forEach(function(doc, callback) {
@@ -83,11 +85,10 @@ module.exports = function conveyor(options, callback) {
       return callback && callback(msg);
     }
     let doc = {};
-    doc._id = idHandler();
+    if (idHandler) doc._id = idHandler();
     doc.message = message;
     doc.by = id;
     collection.insert(doc, callback);
   }
   return exports;
 }
-
