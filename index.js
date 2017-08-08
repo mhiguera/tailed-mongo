@@ -54,15 +54,16 @@ module.exports = function conveyor(options, callback) {
     }
     if (previous && previous.message) emitter.emit('message', previous.message);
     let opts = { tailable: true, awaitdata: true, numberOfRetries: -1 }
-    cursor = collection.find({ _id: { $gt: startPoint } }, opts);
-    cursor.each(function(err, doc) {
+    collection.find({ _id: { $gt: startPoint } }, opts, function(err, cursor) {
       if (err) return emitter.emit('error', err);
-      if (!doc || !doc.message) return;
-      emitter.emit((doc.by == id)? 'acknowledge' : 'message', doc.message);
-    })
-    closed = false;
-    emitter.emit('ready');
-    return callback && callback(null, previous);
+      cursor.forEach(function(doc) {
+        if (!doc || !doc.message) return;
+        emitter.emit((doc.by == id)? 'acknowledge' : 'message', doc.message);
+      })
+      closed = false;
+      emitter.emit('ready');
+      return callback && callback(null, previous);
+    });
   })
   
   let exports = {};
@@ -87,4 +88,3 @@ module.exports = function conveyor(options, callback) {
   }
   return exports;
 }
-

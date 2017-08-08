@@ -1,6 +1,6 @@
 {
   "name": "tailed-mongo",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Tailed cursor for MongoDB capped collections",
   "author": "Manuel de la Higuera <mhiguera@gmail.com>",
   "main": "index.js",
