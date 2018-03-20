@@ -47,7 +47,13 @@ module.exports = function conveyor(options, callback) {
       collection = coll;
       callback(null, coll);
     })
-  } 
+  }
+
+  let close = function(cursor) {
+    cursor.close();
+    closed = true;
+    emitter.emit('closed');
+  }
   
   async.waterfall([createCollection, findStartPoint], function(err, previous) {
     if (err) {
@@ -64,7 +70,8 @@ module.exports = function conveyor(options, callback) {
         } else if (!doc || !doc.message) return;
         emitter.emit((doc.by == id)? 'acknowledge' : 'message', doc.message);
       })
-      closed = false;
+      if (options.close) close(cursor);
+      else closed = false;
       emitter.emit('ready');
       return callback && callback(null, previous);
     });
@@ -72,11 +79,6 @@ module.exports = function conveyor(options, callback) {
   
   let exports = {};
   exports.on = emitter.on.bind(emitter);
-  exports.close = function() {
-    cursor.close();
-    closed = true;
-    emitter.emit('closed');
-  }
   
   exports.publish = function(message, callback) {
     if (closed) {
